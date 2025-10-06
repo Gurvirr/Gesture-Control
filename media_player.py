@@ -7,6 +7,8 @@ class MediaPlayer:
     def __init__(self):
         self.last_gesture_time = 0
         self.gesture_cooldown = 1.0
+        self.last_track_change = 0
+        self.track_change_cooldown = 2.0  # Longer cooldown for track changes
         self.system = platform.system()
 
         # Track info for display
@@ -104,14 +106,26 @@ class MediaPlayer:
         self.status = "Paused"
 
     def next_track(self):
-        if not self.can_process_gesture():
+        current_time = time.time()
+        if current_time - self.last_track_change < self.track_change_cooldown:
             return
-        self.execute_media_key("next")
+        self.last_track_change = current_time
+
+        if self.system == "Darwin":
+            subprocess.run(
+                ["osascript", "-e", 'tell application "Spotify" to next track']
+            )
 
     def previous_track(self):
-        if not self.can_process_gesture():
+        current_time = time.time()
+        if current_time - self.last_track_change < self.track_change_cooldown:
             return
-        self.execute_media_key("previous")
+        self.last_track_change = current_time
+
+        if self.system == "Darwin":
+            subprocess.run(
+                ["osascript", "-e", 'tell application "Spotify" to previous track']
+            )
 
     def volume_up(self):
         if not self.can_process_gesture():
@@ -125,19 +139,27 @@ class MediaPlayer:
         self.execute_media_key("volume_down")
         self.volume = max(0, self.volume - 10)
 
-    def process_gesture(self, gesture_id):
+    def process_gesture(self, gesture_id, volume_level=None):
         gesture_actions = {
-            1: self.play,
-            2: self.pause,
-            3: self.next_track,
-            4: self.previous_track,
-            5: self.volume_up,
-            6: self.volume_down,
+            1: self.play,  # Open palm
+            2: self.pause,  # Fist
+            3: self.next_track,  # Peace sign
+            4: self.previous_track,  # One finger
         }
 
-        action = gesture_actions.get(gesture_id)
-        if action:
-            action()
+        if gesture_id == 5 and volume_level is not None:
+            self.set_volume(volume_level)
+        else:
+            action = gesture_actions.get(gesture_id)
+            if action:
+                action()
+
+    def set_volume(self, volume_level):
+        if self.system == "Darwin":
+            subprocess.run(
+                ["osascript", "-e", f"set volume output volume {volume_level}"]
+            )
+        self.volume = volume_level
 
     def get_status(self):
         self.get_spotify_info()
