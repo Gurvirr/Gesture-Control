@@ -4,7 +4,6 @@ from gestures import GestureRecognizer
 from media_player import MediaPlayer
 
 
-
 def main():
     cap = cv2.VideoCapture(1)
 
