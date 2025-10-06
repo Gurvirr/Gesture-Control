@@ -1,8 +1,7 @@
 # Hand Gesture Music Control
 
 Real-time hand gesture recognition for controlling music playback using computer vision.
-https://github.com/user-attachments/assets/801ef69f-c632-4723-ac26-1c763f8690f7
-
+- https://drive.google.com/file/d/1iJNTgsjb2JfAdPNkn4PS7RXWvd0BgwDe/view?usp=sharing
 ## Setup
 ```
 pip install -r requirements.txt
