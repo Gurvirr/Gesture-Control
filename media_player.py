@@ -1,6 +1,7 @@
 import subprocess
 import time
 import platform
+import threading
 
 
 class MediaPlayer:
@@ -155,10 +156,27 @@ class MediaPlayer:
                 action()
 
     def set_volume(self, volume_level):
-        if self.system == "Darwin":
-            subprocess.run(
-                ["osascript", "-e", f"set volume output volume {volume_level}"]
-            )
+        def run_volume():
+            if self.system == "Darwin":
+                try:
+                    # Control Spotify volume directly for better OBS compatibility
+                    subprocess.run(
+                        [
+                            "osascript",
+                            "-e",
+                            f'tell application "Spotify" to set sound volume to {volume_level}',
+                        ],
+                        check=True,
+                    )
+                    print(f"  └─ [SYSTEM] spotify volume changed to {volume_level}%")
+                except subprocess.CalledProcessError:
+                    # Fallback to system volume
+                    subprocess.run(
+                        ["osascript", "-e", f"set volume output volume {volume_level}"]
+                    )
+                    print(f"  └─ [SYSTEM] system volume changed to {volume_level}%")
+
+        threading.Thread(target=run_volume, daemon=True).start()
         self.volume = volume_level
 
     def get_status(self):
