@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 from gestures import GestureRecognizer
+from media_player import MediaPlayer
 
 
 def main():
@@ -15,12 +16,14 @@ def main():
     )
     mp_draw = mp.solutions.drawing_utils
     gesture_recognizer = GestureRecognizer()
+    media_player = MediaPlayer()
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        frame = cv2.flip(frame, 1)
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(rgb_frame)
 
@@ -31,13 +34,36 @@ def main():
                 gesture_id = gesture_recognizer.detect_gesture(hand_landmarks.landmark)
                 gesture_name = gesture_recognizer.get_gesture_name(gesture_id)
 
+                media_player.process_gesture(gesture_id)
+                status = media_player.get_status()
+
                 cv2.putText(
                     frame,
-                    gesture_name,
+                    f"Gesture: {gesture_name}",
                     (10, 50),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
+                    0.7,
                     (0, 255, 0),
+                    2,
+                )
+
+                cv2.putText(
+                    frame,
+                    f"{status['track']}",
+                    (10, 80),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
+                    2,
+                )
+
+                cv2.putText(
+                    frame,
+                    f"Status: {status['status']} | Volume: {status['volume']}%",
+                    (10, 110),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
                     2,
                 )
 
