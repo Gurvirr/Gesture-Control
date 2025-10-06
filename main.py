@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+from gestures import GestureRecognizer
 
 
 def main():
@@ -13,6 +14,7 @@ def main():
         min_tracking_confidence=0.5,
     )
     mp_draw = mp.solutions.drawing_utils
+    gesture_recognizer = GestureRecognizer()
 
     while True:
         ret, frame = cap.read()
@@ -25,6 +27,19 @@ def main():
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+                gesture_id = gesture_recognizer.detect_gesture(hand_landmarks.landmark)
+                gesture_name = gesture_recognizer.get_gesture_name(gesture_id)
+
+                cv2.putText(
+                    frame,
+                    gesture_name,
+                    (10, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 255, 0),
+                    2,
+                )
 
         cv2.imshow("Gesture Control", frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
